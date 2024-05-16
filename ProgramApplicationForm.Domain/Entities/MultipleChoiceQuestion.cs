@@ -1,12 +1,7 @@
-﻿//using ApplicationForm.Domain.Enums;
+﻿using ProgramApplicationForm.Domain.Entities;
 
-//namespace ApplicationForm.Domain.Entities;
-//public class MultipleChoiceQuestion : Questions
-//{
-//    public MultipleChoiceQuestion()
-//    {
-//        Type = QuestionTypes.MultipleChoice;
-//    }
-//    public List<string> Options { get; set; } = default!;
-//}
-
+public class MultipleChoiceQuestion : Question
+{
+    public List<string> Options { get; set; }
+    public int MaxChoices { get; set; }
+}

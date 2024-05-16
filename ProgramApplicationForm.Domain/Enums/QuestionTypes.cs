@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ApplicationForm.Domain.Enums;
+﻿
+namespace ProgramApplicationForm.Domain.Enums;
 
 public enum QuestionTypes
 {
-    Paragraph,
+    Paragraph = 1,
     YesNo,
     Number,
     Date,
