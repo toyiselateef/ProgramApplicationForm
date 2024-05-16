@@ -4,15 +4,23 @@ using ProgramApplicationForm.Application;
 using ProgramApplicationForm.Api.Validators; 
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using Microsoft.Azure.Cosmos;
+using ProgramApplicationForm.Infrastructure.DAL;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+ 
+builder.Services.AddSingleton<CosmosClient>(provider =>
+{
+    return new CosmosClient(builder.Configuration["CosmosDB:Endpoint"], builder.Configuration["CosmosDB:Key"], new CosmosClientOptions
+    {
+        ConnectionMode = ConnectionMode.Direct,
+        MaxRetryAttemptsOnRateLimitedRequests = 9,
+        MaxRetryWaitTimeOnRateLimitedRequests = TimeSpan.FromSeconds(30)
+    });
+});
 
 builder.Services.AddControllers().AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<QuestionValidator>());
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-
-//builder.Services.AddValidatorsFromAssemblyContaining<QuestionValidator>();
 
 
 //dI
@@ -22,7 +30,12 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+var scope = app.Services.CreateScope();
+var dbContext = scope.ServiceProvider.GetRequiredService<DBContext>();
+await dbContext.InitializeAsync();
+
+
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

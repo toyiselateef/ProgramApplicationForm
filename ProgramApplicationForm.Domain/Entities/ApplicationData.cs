@@ -1,4 +1,6 @@
 ﻿
+using Newtonsoft.Json;
+
 namespace ProgramApplicationForm.Domain.Entities;
 
  
@@ -6,6 +8,7 @@ namespace ProgramApplicationForm.Domain.Entities;
 
 public class ApplicationData
 {
+    [JsonProperty("id")]
     public string Id { get; set; }
     public string ApplicationFormId { get; set; }
     public string FullName { get; set; }

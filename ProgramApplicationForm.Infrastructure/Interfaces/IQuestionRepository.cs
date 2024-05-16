@@ -11,5 +11,5 @@ public interface IQuestionRepository
     Task<Question> GetQuestionAsync(string id, CancellationToken cancellationToken);
     Task UpdateQuestionAsync(string id, Question question, CancellationToken cancellationToken);
 
-    IAsyncEnumerable<Question> GetQuestionsForProgramAsync(string programId, [EnumeratorCancellation] CancellationToken cancellationToken);
+    Task<IEnumerable<Question>> GetQuestionsForProgramAsync(string programId, [EnumeratorCancellation] CancellationToken cancellationToken);
 }

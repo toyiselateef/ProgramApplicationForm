@@ -6,7 +6,8 @@ using AutoMapper;
 using Bogus;
 using ProgramApplicationForm.Application.Dtos;
 using ProgramApplicationForm.Domain.Enums;
-using ProgramApplicationForm.Domain.Entities; 
+using ProgramApplicationForm.Domain.Entities;
+using ApplicationForm.Application.Profiles;
 
 namespace ProgramApplicationForm.Tests.Services;
 
@@ -21,8 +22,9 @@ public class QuestionServiceTests
     {
         questionRepoMock = new Mock<IQuestionRepository>();
         programFormRepoMock = new Mock<IProgramApplicationFormRepository>();
-        mapperMock = new Mock<IMapper>();
-        questionService = new QuestionService(questionRepoMock.Object, programFormRepoMock.Object, mapperMock.Object);
+        var mapperConfiguration = new MapperConfiguration(cfg => cfg.AddProfile<GeneralProfile>());
+        var mapperMock = mapperConfiguration.CreateMapper();
+        questionService = new QuestionService(questionRepoMock.Object, programFormRepoMock.Object, mapperMock);
         faker = new Faker<QuestionDto>()
             .RuleFor(q => q.Type, f => f.PickRandom(QuestionTypes.Paragraph, QuestionTypes.YesNo, QuestionTypes.Number, QuestionTypes.Date, QuestionTypes.MultipleChoice, QuestionTypes.DropDown))
             .RuleFor(q => q.QuestionText, f => f.Lorem.Sentence())
@@ -63,17 +65,13 @@ public class QuestionServiceTests
     public async Task GetQuestionsAsync_Should_Return_Questions()
     {
         // Arrange
-        
-        IAsyncEnumerable<Question> questions = CreateQuestionsAsync();
+        var programApplicationFormId = Guid.NewGuid().ToString();
+        Task<IEnumerable<Question>> questions = CreateQuestions(programApplicationFormId); 
 
-        questionRepoMock.Setup(s => s.GetQuestionsForProgramAsync(Guid.NewGuid().ToString(), It.IsAny<CancellationToken>())).Returns(questions);
+         questionRepoMock.Setup(s => s.GetQuestionsForProgramAsync(programApplicationFormId, It.IsAny<CancellationToken>())).Returns(questions);
 
         // Act 
-        var result = new List<QuestionDto>();
-        await foreach (var question in questionService.GetQuestionsAsync(Guid.NewGuid().ToString(), CancellationToken.None))
-        {
-            result.Add(question);
-        }
+        var result = (await questionService.GetQuestionsAsync(programApplicationFormId, CancellationToken.None)).ToList();
 
         // Assert
         Assert.Equal(2, result.Count);
@@ -81,10 +79,14 @@ public class QuestionServiceTests
         Assert.Contains(result, q => q.QuestionText == "Question 2");
     }
 
-    private async IAsyncEnumerable<Question> CreateQuestionsAsync()
+    private Task<IEnumerable<Question>> CreateQuestions(string ApplicationFormId)
     {
-        yield return new ParagraphQuestion { Id = Guid.NewGuid().ToString(), Type = QuestionTypes.Paragraph, QuestionText = "Question 1" };
-        yield return new YesNoQuestion { Id = Guid.NewGuid().ToString(), Type = QuestionTypes.YesNo, QuestionText = "Question 2" };
+        IEnumerable<Question> result = new List<Question>() { 
+            new ParagraphQuestion { Id = Guid.NewGuid().ToString(), Type = QuestionTypes.Paragraph, QuestionText = "Question 1", ApplicationFormId = ApplicationFormId }, 
+            new YesNoQuestion { Id = Guid.NewGuid().ToString(), Type = QuestionTypes.YesNo, QuestionText = "Question 2", ApplicationFormId= ApplicationFormId } 
+        };
+
+        return Task.FromResult(result);
     }
 }
 

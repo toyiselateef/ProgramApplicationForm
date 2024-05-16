@@ -1,7 +1,12 @@
 ﻿using AutoMapper;
 using ProgramApplicationForm.Application.Dtos;
+using ProgramApplicationForm.Application.Exceptions;
 using ProgramApplicationForm.Application.Interfaces;
-using ProgramApplicationForm.Infrastructure.Interfaces; 
+using ProgramApplicationForm.Domain.Entities;
+using ProgramApplicationForm.Domain.Enums;
+using ProgramApplicationForm.Infrastructure.Interfaces;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace ApplicationForm.Application.Services;
 
@@ -17,23 +22,51 @@ public class QuestionService : IQuestionService
         this.programFormRepository = programFormRepository;
         this.mapper = mapper;
     }
-    public Task<QuestionDto> CreateQuestionAsync(QuestionDto createQuestionDto, CancellationToken cancellationToken)
+    public async Task<QuestionDto> CreateQuestionAsync(QuestionDto createQuestionDto, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        Question question = MapQuestionDto(createQuestionDto);
+       
+       
+        return mapper.Map<QuestionDto>(await questionRepository.AddQuestionAsync(question, cancellationToken));
     }
 
-    public Task<QuestionDto> GetQuestionByIdAsync(string id, CancellationToken cancellationToken)
+    public async Task<QuestionDto> GetQuestionByIdAsync(string id, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        Question response = await questionRepository.GetQuestionAsync(id, cancellationToken);
+
+        return mapper.Map<QuestionDto>(response);
     }
 
-    public IAsyncEnumerable<QuestionDto> GetQuestionsAsync(string programId, CancellationToken cancellationToken)
+    public async Task<IEnumerable<QuestionDto>> GetQuestionsAsync(string programId, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        var result = await questionRepository.GetQuestionsForProgramAsync(programId, cancellationToken);
+        return mapper.Map<IEnumerable<QuestionDto>>(result);
     }
 
-    public Task UpdateQuestionAsync(string id, QuestionDto questionDto, CancellationToken cancellationToken)
+    public async Task UpdateQuestionAsync(string id, QuestionDto questionDto, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        var existingQuestion = await questionRepository.GetQuestionAsync(id, cancellationToken);
+        if (existingQuestion == null)
+        {
+            throw new NotFoundException("no such question");
+        }
+
+        await questionRepository.UpdateQuestionAsync(id, mapper.Map<Question>(existingQuestion), cancellationToken)//.ConfigureAwait(false)
+                            ;
+    }
+
+
+    private Question MapQuestionDto(QuestionDto questionDto)
+    {
+        return questionDto.Type switch
+        {
+            QuestionTypes.Paragraph => new ParagraphQuestion { Id = questionDto.Id, Type = questionDto.Type, QuestionText = questionDto.QuestionText },
+            QuestionTypes.YesNo => new YesNoQuestion { Id = questionDto.Id, Type = questionDto.Type, QuestionText = questionDto.QuestionText },
+            QuestionTypes.DropDown => new DropdownQuestion { Id = questionDto.Id, Type = questionDto.Type, QuestionText = questionDto.QuestionText, Options = questionDto.Options },
+            QuestionTypes.MultipleChoice => new MultipleChoiceQuestion { Id = questionDto.Id, Type = questionDto.Type, QuestionText = questionDto.QuestionText, Options = questionDto.Options },
+            QuestionTypes.Date => new DateQuestion { Id = questionDto.Id, Type = questionDto.Type, QuestionText = questionDto.QuestionText },
+            QuestionTypes.Number => new NumericQuestion { Id = questionDto.Id, Type = questionDto.Type, QuestionText = questionDto.QuestionText },
+            _ => throw new ArgumentException("Invalid question type", nameof(questionDto.Type))
+        };
     }
 }

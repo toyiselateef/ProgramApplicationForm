@@ -1,6 +1,6 @@
 ﻿
 using AutoMapper;
-using ProgramApplicationForm.Application.Dtos;
+using ProgramApplicationForm.Application.Dtos; 
 using ProgramApplicationForm.Domain.Entities;
 
 namespace ApplicationForm.Application.Profiles;
@@ -18,7 +18,14 @@ namespace ApplicationForm.Application.Profiles;
         CreateMap<YesNoQuestionDto, YesNoQuestion>().ReverseMap();
         CreateMap<MultipleChoiceQuestionDto, MultipleChoiceQuestion>().ReverseMap();
 
+
         CreateMap<Question, QuestionDto>().IncludeAllDerived();
+       
+        
+        CreateMap<Answer, AnswerDto>().ReverseMap();
+
+
+        CreateMap<ApplicationData, ApplicationDataDto>().ReverseMap();
          
     }
 

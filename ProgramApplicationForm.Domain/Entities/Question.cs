@@ -1,10 +1,12 @@
 ﻿
-using ProgramApplicationForm.Domain.Enums;
+using Newtonsoft.Json;
+using ProgramApplicationForm.Domain.Enums; 
 
 namespace ProgramApplicationForm.Domain.Entities;
-public abstract class Question
+public  class Question
 {
-    public string Id { get; set; }
+    [JsonProperty("id")]
+    public string Id { get; set; } = Guid.NewGuid().ToString();
     public string ApplicationFormId { get; set; }
     public QuestionTypes Type { get; set; }
     public string QuestionText { get; set; }
