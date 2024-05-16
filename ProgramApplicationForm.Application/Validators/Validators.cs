@@ -1,4 +1,4 @@
-﻿ using FluentValidation;
+﻿using FluentValidation;
 using ProgramApplicationForm.Application.Dtos;
 using ProgramApplicationForm.Domain.Enums;
 
@@ -28,17 +28,22 @@ public class QuestionValidator : AbstractValidator<QuestionDto>
     {
         RuleFor(q => q.ApplicationFormId).NotEmpty()
                                     .WithMessage("Program Application Form ID is required.");
-        RuleFor(q => q.Type).NotEmpty()
-                                    .WithMessage("Question type is required.");
-        RuleFor(q => q.QuestionText).NotEmpty()
-                                    .WithMessage("Question text is required.");
+        RuleFor(x => x.Type)
+            .NotEmpty().WithMessage("Type is required.")
+            .Must(type => new[] { QuestionTypes.Paragraph, QuestionTypes.YesNo, QuestionTypes.Number, QuestionTypes.Date, QuestionTypes.MultipleChoice, QuestionTypes.DropDown }.Contains(type))
+            .WithMessage("Invalid question type.");
+
+
+        RuleFor(q => q.QuestionText)
+            .NotEmpty()
+            .WithMessage("Question text is required.");
         RuleFor(q => q.Options).NotEmpty()
-                                    .When(q => q.Type == QuestionTypes.DropDown || q.Type == QuestionTypes.MultipleChoice)
-                                    .WithMessage("Options are required for Dropdown and MultipleChoice questions.");
+            .When(q => q.Type == QuestionTypes.DropDown || q.Type == QuestionTypes.MultipleChoice)
+            .WithMessage("Options are required for Dropdown and MultipleChoice questions.");
         RuleFor(q => q.MaxSelection).GreaterThan(0)
-                                    .WithMessage("Max selection for Dropdown must be greater than zero for Dropdown questions.")
-                                          .LessThanOrEqualTo(q => q.Options.Count).WithMessage("Max selection must be less than or equal to the number of options.")
-                                    .When(q => q.Type == QuestionTypes.DropDown);
+            .WithMessage("Max selection for Dropdown must be greater than zero for Dropdown questions.")
+            .LessThanOrEqualTo(q => q.Options.Count).WithMessage("Max selection must be less than or equal to the number of options.")
+            .When(q => q.Type == QuestionTypes.DropDown);
 
         RuleFor(q => q.MaxLength).GreaterThan(0).When(q => q.Type == QuestionTypes.Paragraph)
                                     .WithMessage("Max length must be greater than zero for paragraph question.");

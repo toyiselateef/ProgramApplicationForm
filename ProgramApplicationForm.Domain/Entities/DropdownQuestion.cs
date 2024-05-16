@@ -1,4 +1,4 @@
-﻿using ApplicationForm.Domain.Entities;
+﻿using ProgramApplicationForm.Domain.Entities;
 
 namespace ProgramApplicationForm.Domain.Entities;
 public class DropdownQuestion : Question
