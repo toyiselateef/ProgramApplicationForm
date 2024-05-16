@@ -1,6 +1,5 @@
-﻿
-
-using Microsoft.Azure.Cosmos;
+﻿using Microsoft.Azure.Cosmos;
+using Newtonsoft.Json;
 using ProgramApplicationForm.Domain.Entities;
 using ProgramApplicationForm.Infrastructure.Common;
 using ProgramApplicationForm.Infrastructure.DAL;
@@ -31,8 +30,35 @@ public class QuestionRepository : IQuestionRepository
     {
         try
         {
-            ItemResponse<Question> response = await questionsContainer.ReadItemAsync<Question>(id, new PartitionKey(id), cancellationToken: cancellationToken);
-            return response.Resource;
+            ItemResponse<dynamic> response = await questionsContainer.ReadItemAsync<dynamic>(id, new PartitionKey(id), cancellationToken: cancellationToken);
+            var resource = response.Resource.ToString();
+
+            if (IsOfType<ParagraphQuestion>(resource, out ParagraphQuestion paragraphQuestion))
+            {
+                return paragraphQuestion;
+            }
+            if (IsOfType<YesNoQuestion>(resource, out YesNoQuestion yesNoQuestion))
+            {
+                return yesNoQuestion;
+            }
+            if (IsOfType<MultipleChoiceQuestion>(resource, out MultipleChoiceQuestion multipleChoiceQuestion))
+            {
+                return multipleChoiceQuestion;
+            }
+            if (IsOfType<DropdownQuestion>(resource, out DropdownQuestion dropdownQuestion))
+            {
+                return dropdownQuestion;
+            }
+            if (IsOfType<NumericQuestion>(resource, out NumericQuestion numericQuestion))
+            {
+                return numericQuestion;
+            }
+            if (IsOfType<DateQuestion>(resource, out DateQuestion dateQuestion))
+            {
+                return dateQuestion;
+            }
+
+            return JsonConvert.DeserializeObject<Question>(resource);
         }
         catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
         {
@@ -60,5 +86,19 @@ public class QuestionRepository : IQuestionRepository
     public async Task UpdateQuestionAsync(string id, Question question, CancellationToken cancellationToken)
     {
         await questionsContainer.UpsertItemAsync(question, new PartitionKey(id), cancellationToken: cancellationToken);
+    }
+
+    private bool IsOfType<T>(string resource, out T result) where T : Question
+    {
+        try
+        {
+            result = JsonConvert.DeserializeObject<T>(resource);
+            return result != null;
+        }
+        catch (JsonSerializationException)
+        {
+            result = null;
+            return false;
+        }
     }
 }

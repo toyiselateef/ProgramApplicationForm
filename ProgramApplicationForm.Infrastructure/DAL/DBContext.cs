@@ -1,70 +1,49 @@
 ﻿using Microsoft.Azure.Cosmos;
-using Microsoft.Extensions.Configuration;
 using ProgramApplicationForm.Infrastructure.Common;
-namespace ProgramApplicationForm.Infrastructure.DAL;
 
-
-public class DBContext
+namespace ProgramApplicationForm.Infrastructure.DAL
 {
-    //private readonly CosmosClient cosmosClient;
-    //private Database _database;
-
-    //public DBContext(CosmosClient cosmosClient)
-    //{
-    //    this.cosmosClient = cosmosClient;
-
-    //}
-
-    //public async Task InitializeAsync()
-    //{
-    //    string databaseId = DataConstants.AppDB;
-    //    _database = await cosmosClient.CreateDatabaseIfNotExistsAsync(databaseId);
-
-
-    //    await _database.CreateContainerIfNotExistsAsync(DataConstants.pafContainerId, "/id");
-    //    await _database.CreateContainerIfNotExistsAsync(DataConstants.questContainerId, "/id");
-    //    await _database.CreateContainerIfNotExistsAsync(DataConstants.appsContainerId, "/id");
-
-    //}
-
-
-
-    private readonly CosmosClient _cosmosClient;
-    private readonly Database _database;
-
-    private static bool _initialized = false;
-    private static readonly object _lock = new object();
-
-    public DBContext(CosmosClient cosmosClient)
+    public class DBContext
     {
-        _cosmosClient = cosmosClient ?? throw new ArgumentNullException(nameof(cosmosClient));
-        _database = _cosmosClient.GetDatabase(DataConstants.AppDB);
-    }
+        private readonly CosmosClient _cosmosClient;
+        private Database _database;
 
-    //public async Task EnsureInitializedAsync()
-    //{
-    //    if (!_initialized)
-    //    {
-    //        lock (_lock)
-    //        {
-    //            if (!_initialized)
-    //            {
-    //                 InitializeAsync();
-    //                _initialized = true;
-    //            }
-    //        }
-    //    }
-    //}
+        public DBContext(CosmosClient cosmosClient)
+        {
+            _cosmosClient = cosmosClient ?? throw new ArgumentNullException(nameof(cosmosClient));
+        }
 
-    public async Task InitializeAsync()
-    {
-        await _database.CreateContainerIfNotExistsAsync(DataConstants.pafContainerId, "/id");
-        await _database.CreateContainerIfNotExistsAsync(DataConstants.questContainerId, "/id");
-        await _database.CreateContainerIfNotExistsAsync(DataConstants.appsContainerId, "/id");
-    }
+        public async Task InitializeAsync()
+        {
+            try
+            {
+                _database = await _cosmosClient.CreateDatabaseIfNotExistsAsync(DataConstants.AppDB);
+                await _database.CreateContainerIfNotExistsAsync(DataConstants.pafContainerId, "/id");
+                await _database.CreateContainerIfNotExistsAsync(DataConstants.questContainerId, "/id");
+                await _database.CreateContainerIfNotExistsAsync(DataConstants.appsContainerId, "/id");
+            }
+            catch (CosmosException ex)
+            {
+                // Handle Cosmos DB specific exceptions
+                Console.WriteLine($"Cosmos DB Error: {ex.Message}");
+                throw;
+            }
+            catch (Exception ex)
+            {
+                // Handle other exceptions
+                Console.WriteLine($"Error: {ex.Message}");
+                throw;
+            }
+        }
 
-    public Container GetContainer(string containerId)
-    {
-        return _database.GetContainer(containerId);
+        public Container GetContainer(string containerId)
+        {
+            if (_database == null)
+            {
+                throw new InvalidOperationException("Database has not been initialized. Call InitializeAsync first.");
+            }
+
+            return _database.GetContainer(containerId);
+        }
     }
-} 
+}

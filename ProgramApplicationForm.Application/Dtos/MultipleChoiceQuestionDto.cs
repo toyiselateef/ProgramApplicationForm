@@ -1,6 +1,6 @@
 ﻿namespace ProgramApplicationForm.Application.Dtos;
 
-public class MultipleChoiceQuestionDto  : QuestionDto
+public class MultipleChoiceQuestionDto  : ReadQuestionDto
 {
     public List<string> Options { get; set; }
   

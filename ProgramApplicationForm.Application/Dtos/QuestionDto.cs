@@ -4,7 +4,7 @@
 using ProgramApplicationForm.Domain.Enums;
 
 namespace ProgramApplicationForm.Application.Dtos;
- 
+
 public class CreateQuestionDto
 {
     public string Id { get; set; }
@@ -19,7 +19,6 @@ public class CreateQuestionDto
 
 public class QuestionDto
 {
-    public string Id { get; set; }
     public string ApplicationFormId { get; set; }
     public QuestionTypes Type { get; set; }
     public string QuestionText { get; set; }

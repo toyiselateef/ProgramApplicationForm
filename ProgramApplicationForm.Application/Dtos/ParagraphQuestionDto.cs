@@ -1,7 +1,7 @@
 ﻿
 namespace ProgramApplicationForm.Application.Dtos;
 
-public class ParagraphQuestionDto  : QuestionDto
+public class ParagraphQuestionDto  : ReadQuestionDto
 {
     public int MaxLength { get; set; }
 }

@@ -1,7 +1,7 @@
 ﻿
 namespace ProgramApplicationForm.Application.Dtos;
 
-public class YesNoQuestionDto  : QuestionDto
+public class YesNoQuestionDto  : ReadQuestionDto
 {
     public bool DefaultAnswer { get; set; }
 }

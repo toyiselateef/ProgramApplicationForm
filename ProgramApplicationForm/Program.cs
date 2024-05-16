@@ -1,7 +1,7 @@
 
 using ProgramApplicationForm.Infrastructure;
 using ProgramApplicationForm.Application;
-using ProgramApplicationForm.Api.Validators; 
+using ProgramApplicationForm.Api.Validators;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.Azure.Cosmos;
@@ -9,7 +9,11 @@ using ProgramApplicationForm.Infrastructure.DAL;
 
 var builder = WebApplication.CreateBuilder(args);
 
- 
+
+builder.Services.AddControllers().AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<QuestionValidator>());
+
+
+builder.Services.AddSingleton<ExceptionHandlingMiddleware>();
 builder.Services.AddSingleton<CosmosClient>(provider =>
 {
     return new CosmosClient(builder.Configuration["CosmosDB:Endpoint"], builder.Configuration["CosmosDB:Key"], new CosmosClientOptions
@@ -20,16 +24,15 @@ builder.Services.AddSingleton<CosmosClient>(provider =>
     });
 });
 
-builder.Services.AddControllers().AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<QuestionValidator>());
-
-
 //dI
 builder.Services.AddInfrastructureServices(builder.Configuration).AddApplicationServices();
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 var scope = app.Services.CreateScope();
 var dbContext = scope.ServiceProvider.GetRequiredService<DBContext>();
 await dbContext.InitializeAsync();

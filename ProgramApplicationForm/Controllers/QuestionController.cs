@@ -1,4 +1,4 @@
-﻿ 
+﻿
 using Microsoft.AspNetCore.Mvc;
 using ProgramApplicationForm.Api.Models;
 using ProgramApplicationForm.Application.Dtos;
@@ -11,7 +11,7 @@ public class QuestionController : BaseController
     private readonly IQuestionService questionService;
 
     public QuestionController(IQuestionService questionService)
-    { 
+    {
         this.questionService = questionService;
     }
 
@@ -22,8 +22,8 @@ public class QuestionController : BaseController
         {
             return StatusCode(StatusCodes.Status400BadRequest, ModelState);
         }
-        QuestionDto createdQuestion = await questionService.CreateQuestionAsync(questionDto, cancellationToken);
-        return CreatedAtAction(nameof(GetQuestionById), new { id = createdQuestion.Id }, ApiResponse<QuestionDto>.SuccessResponse(createdQuestion));
+        ReadQuestionDto createdQuestion = await questionService.CreateQuestionAsync(questionDto, cancellationToken);
+        return CreatedAtAction(nameof(GetQuestionById), new { id = createdQuestion.Id }, ApiResponse<ReadQuestionDto>.SuccessResponse(createdQuestion));
     }
 
     [HttpPut("{id}")]
@@ -44,8 +44,8 @@ public class QuestionController : BaseController
         {
             return StatusCode(StatusCodes.Status400BadRequest, ModelState);
         }
-        IAsyncEnumerable<QuestionDto> questions = questionService.GetQuestionsAsync(programId, cancellationToken);
-        return Ok(ApiResponse<IAsyncEnumerable<QuestionDto>>.SuccessResponse(questions));
+        IEnumerable<ReadQuestionDto> questions = await questionService.GetQuestionsAsync(programId, cancellationToken);
+        return Ok(ApiResponse<IEnumerable<ReadQuestionDto>>.SuccessResponse(questions));
 
     }
 
@@ -56,9 +56,9 @@ public class QuestionController : BaseController
         {
             return StatusCode(StatusCodes.Status400BadRequest, ModelState);
         }
-        var question = await questionService.GetQuestionByIdAsync(id, cancellationToken);
+        ReadQuestionDto question = await questionService.GetQuestionByIdAsync(id, cancellationToken);
         return question == null
-            ? NotFound(ApiResponse<QuestionDto>.ErrorResponse($"No such Question with id:{id} found"))
-            : Ok(ApiResponse<QuestionDto>.SuccessResponse(question));
+            ? NotFound(ApiResponse<ReadQuestionDto>.ErrorResponse($"No such Question with id:{id} found"))
+            : Ok(ApiResponse<ReadQuestionDto>.SuccessResponse(question));
     }
 }

@@ -14,11 +14,12 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddApplicationServices(this IServiceCollection services/*, IConfiguration Configuration*/)
     {
+
         services.AddScoped<IApplicationsService, ApplicationsService>();
         services.AddScoped<IQuestionService, QuestionService>();
 
 
-        services.AddAutoMapper(Assembly.GetExecutingAssembly()); 
+        services.AddAutoMapper(Assembly.GetExecutingAssembly());
         return services;
     }
 
